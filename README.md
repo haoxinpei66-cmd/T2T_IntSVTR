@@ -23,3 +23,8 @@ This repository contains the primary analysis scripts for the comparative evalua
 | 15.py | Scripts for analyzing the recall of various reflens within TRs across different genomic regions |
 | 16.py | Scripts for analyzing the precision of various reflens within TRs across different genomic regions |
 | 17.py | Scripts for analyzing the precision of various motifs within TRs across different genomic regions |
+| 18.py & 19.pbs | Script for merging SNPs and SVs |
+| 20.py & 21.pbs | Script for merging SNPs and TRs |
+| 22.pbs | Script for phasing SVs |
+| 23.py & 24.pbs | Script for phasing TRs |
+| 25.sh & 26.py & 27.py & 28.pbs | Script for evaluating imputation |
