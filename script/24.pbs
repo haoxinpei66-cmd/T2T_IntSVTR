@@ -1,0 +1,96 @@
+#!/bin/bash
+#PBS -j eo
+#PBS -N tp1.surban
+#PBS -V
+#PBS -q Mobility
+#PBS -l nodes=1:ppn=16
+#PBS -d /Parastor300s_G30S/zhangp/all/t2t/haoxp/tr2phasing
+
+### Inherit all current environment variables
+#SBATCH --get-user-env
+### Keep Output and Error
+#SBATCH -o job-%x-%j.out
+### Job name
+#SBATCH --job-name tp.surban
+### Queue name
+### Specify the number of nodes and thread (ppn) for your job.
+#SBATCH -n 1
+##SBATCH --nodelist=MarkDupEBS-3
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=100G
+
+
+echo Pipeline Start time @ $(date +%Y/%m/%d--%H:%M)
+work_start_time=$(date +%s)
+hostname
+
+sample=surban
+#sex=$sex
+#bam=$bam
+#bai=$bai
+dataset=$dataset
+batch=$dataset
+#readlength=150
+threads=16
+WORKDIR=/Parastor300s_G30S/zhangp/all/t2t/haoxp/tr2phasing
+#HAPCUTDIR=/mnt/jfs/lin.chen/hapcut/HGDP
+#INDIR=/share/bioinfo/lin.chen/dumpstr/mendal/0829huichuan
+#REFDIR=/data/ref
+#IMGDIR="/share/bioinfo/images"
+
+#TMPDIR="/share/bioinfo/lin.chen/MOPline/tmp"
+#[ -e ${TMPDIR} ] && : || mkdir -p ${TMPDIR}
+#TOSUTIL=/share/bioinfo/lin.chen/tosutil
+#TOSCP="$TOSUTIL cp -p 2 -j 2 -conf /share/bioinfo/lin.chen/.tosutilconfig "
+
+U_LOGS=$WORKDIR/$sample.uncomplete.log
+C_LOGS=$WORKDIR/$sample.complete.log
+#[ -e $WORKDIR/log/$batch ] && : || mkdir -p $WORKDIR/log/$batch
+
+chr=$sample
+OUTDIR=$WORKDIR
+[ -e $OUTDIR/split/chr$chr ] && : || mkdir -p $OUTDIR/split/chr$chr
+#mkdir -p ${OUTDIR}/$sample
+
+invcf=$WORKDIR/TR/TRchr$chr.vcf.gz
+#export PYTHONPATH=$PYTHONPATH:/share/bioinfo/lin.chen/lib
+
+cd $WORKDIR
+
+if false; then # [ ! -e $OUTDIR/split/chr$chr/tr.chr$chr.regions.txt ]; then
+  #singularity exec -B /mnt:/mnt -B /share:/share $IMGDIR/biotools_ibp_snp_v2.sif \
+    #sh -c " cd $WORKDIR/$dataset
+    python trflank2.py -i $WORKDIR/panel/chr$chr.pass.vcf.gz -t $invcf -c $chr -e paichuliebiao/chr$chr.error.txt -o split/chr$chr/tr  
+  if [ $? -ne 0 ]; then
+    echo "trflank failed"
+    echo "${sample} trflank UnComplete `date +%Y/%m/%d--%H:%M`" >>$U_LOGS
+    exit -1
+  fi
+fi
+
+for region in `cat $OUTDIR/split/chr$chr/tr.chr$chr.regions.txt`; do
+  echo $region
+  if [ ! -e $OUTDIR/split/chr$chr/tr.chr$chr.$region.phased.vcf.gz ]; then
+    #singularity exec -B /mnt:/mnt -B /share:/share $IMGDIR/beagle_4.1.sif 
+    java -Xss5m -Xmx900g -jar beagle/beagle.r1399.jar \
+      gt=$OUTDIR/split/chr$chr/tr.chr$chr.$region.vcf.gz out=$OUTDIR/split/chr$chr/tr.chr$chr.$region.phased usephase=true nthreads=$threads # ped=$OUTDIR/all.fam
+    if [ $? -ne 0 ]; then
+      echo "${sample} $region trPhasing failed"
+      echo "${sample} $region trPhasing UnComplete `date +%Y/%m/%d--%H:%M`" >>$U_LOGS
+      #exit -1
+    fi
+  fi
+
+done
+
+#singularity exec -B $WORKDIR:$WORKDIR $IMGDIR/biotools_ibp_snp_v2.sif \
+#  sh -c " bgzip $WORKDIR/$dataset/stats/chr$chr.trstats.vcf && tabix $WORKDIR/$dataset/stats/chr$chr.trstats.vcf.gz "
+
+echo "${sample} trphasing Complete `date +%Y/%m/%d--%H:%M`" >>$C_LOGS
+end_time=$(date +%s)
+((elapsed_time = $end_time - $work_start_time))
+echo "#######-- trphasing Finish Time:`date +%Y/%m/%d--%H:%M` --#######"
+echo "#######-- trphasing Elapsed Time:$elapsed_time sec --#######"
+
+
+

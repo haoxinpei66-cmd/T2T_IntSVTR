@@ -1,0 +1,15 @@
+#!/bin/bash
+#PBS -V
+#PBS -j eo
+#PBS -N mergesv2
+#PBS -q Blade
+#PBS -l nodes=1:ppn=10
+#PBS -d /Parastor300s_G30S/zhangp/all/t2t/haoxp
+#cd $wd
+
+#for i in 21; do
+for i in {1..22}; do
+  echo Processing chr$i...
+  python catvcfs2.py -i snp/extract/chr$i.1kgp967.vcf.gz,sv2/1019_nyuwa_allsv_over05_integrate.vcf.gz -o merge2/chr$i.mergesv2.vcf -c $i -s snp/1019/samples.967.txt -p allpops.txt --header header.txt && bgzip merge2/chr$i.mergesv2.vcf && tabix merge2/chr$i.mergesv2.vcf.gz 
+done
+

@@ -1,0 +1,18 @@
+#!/bin/bash
+#PBS -V
+#PBS -j eo
+#PBS -N phasesv2
+#PBS -q Test
+#PBS -l nodes=1:ppn=20
+#PBS -d /Parastor300s_G30S/zhangp/all/t2t/haoxp
+#cd $wd
+
+threads=20
+for chr in 7; do
+#for chr in {8..11}; do
+  echo Processing chr$chr...
+  shapeit4 -I merge2/chr$chr.mergesv2.vcf.gz -S snp/extract/chr$chr.1kgp967.vcf.gz -R $chr -O phasesv2/chr$chr.sh2.vcf.gz -T $threads -M gmap/gmap/chr$chr.t2t.gmap.resorted.gmap.gz --sequencing --log log/chr$chr.sh2.log
+  tabix phasesv2/chr$chr.sh2.vcf.gz
+  #python catvcfs2.py -i snp/extract/chr$i.1kgp967.vcf.gz,sv/merge_sv_c2.vcf.gz -o merge/chr$i.mergesv.vcf -c $i -s snp/1019/samples.967.txt -p allpops.txt --header header.txt && bgzip merge/chr$i.mergesv.vcf && tabix merge/chr$i.mergesv.vcf.gz 
+done
+

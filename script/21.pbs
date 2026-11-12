@@ -1,0 +1,17 @@
+#!/bin/bash
+#PBS -V
+#PBS -j eo
+#PBS -N mergetr2
+#PBS -q Blade
+#PBS -l nodes=1:ppn=10
+#PBS -d /Parastor300s_G30S/zhangp/all/t2t/haoxp
+#cd $wd
+
+#for i in 21; do
+for chr in {1..22}; do
+#for chr in 1 ; do
+  echo `date +%Y/%m/%d--%H:%M` Processing chr$chr...
+  python mergetr2.py -c $chr -s samples.967.txt --header header2.txt | bgzip >mergetr2/chr$chr.merge.vcf.gz && tabix mergetr2/chr$chr.merge.vcf.gz
+  #python catvcfs2.py -i snp/extract/chr$i.1kgp967.vcf.gz,sv/merge_sv_c2.vcf.gz -o merge/chr$i.mergesv.vcf -c $i -s snp/1019/samples.967.txt -p allpops.txt --header header.txt && bgzip merge/chr$i.mergesv.vcf && tabix merge/chr$i.mergesv.vcf.gz 
+done
+

@@ -1,0 +1,19 @@
+#!/bin/bash
+#PBS -V
+#PBS -j eo
+#PBS -N loos1
+#PBS -q Blade
+#PBS -l nodes=1:ppn=10
+#PBS -d /Parastor300s_G30S/zhangp/all/t2t/haoxp/leaveoneout2
+#cd $wd
+
+#chr=1
+for j in {3..10}; do
+  i=$j\0
+  #for sample in `cat ../samples.967.txt`; do
+  echo `date +%Y/%m/%d--%H:%M` Processing $i ...
+  #sh runloo2.sh $sample $chr
+  head -n $i ../samples.967.txt |tail >samples.$i.txt; python statsimplooas2.py -t SNP -s samples.$i.txt -o stats2/looas.op.b5.SNP.$i.txt -S NYUWA --sparse
+  #python mergetr1.py -c $chr -s samples.967.txt --header header2.txt | bgzip >mergetr/chr$chr.merge.vcf.gz && tabix mergetr/chr$chr.merge.vcf.gz
+done
+
